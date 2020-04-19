@@ -11,7 +11,6 @@ local tileString = [[
 #                 L()R  #
 #                       #
 #                       #
-#                       #
 #  L[]R   L[]R          #
 #  L()R   L()R   ###  ###
 #                #LL  RR#
@@ -33,4 +32,4 @@ local quadInfo = {
   { '#', 96,  0 }  -- bricks
 }
 
-newMap(32,32,'/tiles/resto.png', tileString, quadInfo)
+newMap(32, 32, '/tiles/resto.png', tileString, quadInfo)
