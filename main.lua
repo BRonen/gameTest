@@ -1,5 +1,5 @@
 require 'map-functions'
-require 'player-functions'
+require 'character'
 
 function love.keypressed(k)
   if k == 'escape' then
@@ -18,17 +18,17 @@ function love.keypressed(k)
 end
  
 function love.update( dt )
-  playerMove(x, y)
+  player:Move(x, y)
 end
 
 function love.load()
   loadMap('maps/chez-peter.lua')
 
-  loadSkin('skins/saitama.lua')
+  player = character('skins/saitama.lua')
   x, y = 32, 32
 end
 
 function love.draw()
   drawMap()
-  drawPlayer()
+  player:draw()
 end

@@ -15,4 +15,4 @@ spriteInfo = {
 
 Spriteset = love.graphics.newImage('/skins/saitama.png')
 
-newSkin(Spriteset, spriteInfo, 32, 25)
+return newSkin(Spriteset, spriteInfo, 32, 25)
