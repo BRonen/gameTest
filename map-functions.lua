@@ -1,7 +1,7 @@
 local TileW, TileH
 
 function loadMap(path)
-  love.filesystem.load(path)() -- attention! extra parenthesis
+  return love.filesystem.load(path)() -- attention! extra parenthesis
 end
 
 function newMap(tileW, tileH, tilesetPath, tileString, quadInfo)
@@ -41,12 +41,12 @@ function newMap(tileW, tileH, tilesetPath, tileString, quadInfo)
     end
     rowIndex=rowIndex+1
   end
-
   love.window.setMode(
-    (#TileTable)*32,
-    (#TileTable[1])*32,
+    (#TileTable)*TileH,
+    (#TileTable[1])*TileW,
     { x=1, y=36}
   )
+  return TileTable, tileW, tileH
 end
 
 function drawMap()
