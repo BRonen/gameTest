@@ -5,6 +5,6 @@ spriteInfo = {
   { 'B' , 4, '1-3', 0.5 }
 }
 
-Spriteset = love.graphics.newImage('/skins/saitamaaa.png')
+Spriteset = love.graphics.newImage('/skins/saitama.png')
 
 return newAnimations(Spriteset, spriteInfo, 25, 32)

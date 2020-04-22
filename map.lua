@@ -1,18 +1,28 @@
 local TileW, TileH
 
 function loadMap(path)
-  return love.filesystem.load(path)() -- attention! extra parenthesis
+  return love.filesystem.load(path)()
 end
 
 function newMap(tileW, tileH, tilesetPath, tileString, quadInfo)
+  World = love.physics.newWorld(0, 0, true)
   
+  local function newBlock(x,y , w,h)
+    local block = {}
+    block.b = love.physics.newBody(World, x,y , "static")
+    block.s = love.physics.newRectangleShape(w,h)
+    block.f = love.physics.newFixture(block.b, block.s)
+    block.f:setUserData("Block")
+    return block
+  end
+
   TileW = tileW
   TileH = tileH
   Tileset = love.graphics.newImage(tilesetPath)
   
   local tilesetW, tilesetH = Tileset:getWidth(), Tileset:getHeight()
   
-  Quads = {}
+  Quads, blocks = {}, {}
   
   for _,info in ipairs(quadInfo) do
     -- info[1] = the character, info[2] = x, info[3] = y
@@ -38,15 +48,20 @@ function newMap(tileW, tileH, tilesetPath, tileString, quadInfo)
     for character in row:gmatch(".") do
       TileTable[columnIndex][rowIndex] = character
       columnIndex = columnIndex + 1
+      if character == "#" then
+        table.insert(blocks, newBlock(
+          ((columnIndex-1)*32)-16, (rowIndex*32)-16,
+          tileW, tileH))
+      end
     end
     rowIndex=rowIndex+1
   end
   love.window.setMode(
     (#TileTable)*TileH,
-    (#TileTable[1])*TileW,
-    { x=1, y=36}
+    (#TileTable[1])*TileW--[[,
+    { x=1, y=36}]]
   )
-  return TileTable, tileW, tileH
+  return TileTable, tileW, tileH, f, blocks, World
 end
 
 function drawMap()

@@ -1,38 +1,25 @@
 
 function character(path)
 
-  local o = {state = "F", x = 34, y = 34}
+  local char = {stop = true, state = "F"}
   
-  o.__index = o
+  char.__index = char
 
-  o.Spriteset, o.animation = love.filesystem.load(path)()
+  char.Spriteset, char.animation = love.filesystem.load(path)()
   
-  function o:setState(state)
+  function char:setState(state)
     self.state = state
   end
-  
-  function o:stop()
-    self.animation[self.state]:gotoFrame(2)
-    self.animation[self.state]:pause()
-  end
-  
-  function o:resume()
-    self.animation[self.state]:resume()
-  end
 
-  function o:draw()
+  function char:draw()
+    local x, y = self.b:getPosition()
     self.animation[self.state]:draw(
       self.Spriteset,
-      self.x, self.y
+      x-12, y-16
     )
   end
 
-  function o:Move(x, y)
-    self.x, self.y = x, y
-    return x, y
-  end
-
-  return o
+  return char
 end
 
 function newAnimations(spriteset, spriteInfo, width, height)
