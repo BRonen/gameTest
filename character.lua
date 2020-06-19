@@ -2,20 +2,35 @@
 function character(path)
 
   local char = {stop = true, state = "F"}
-  
-  char.__index = char
 
   char.Spriteset, char.animation = love.filesystem.load(path)()
   
+  function char:reset(x, y)
+  self.b = love.physics.newBody(World, x, y, "dynamic")
+  self.s = love.physics.newRectangleShape(20,20)
+  self.f = love.physics.newFixture(player.b, player.s)
+  self.f:setUserData("Player")
+  self.f:setRestitution(0.2)
+  end
+  
   function char:setState(state)
     self.state = state
+  end
+
+  function char:stop()
+    self.animation[self.state]:gotoFrame(2)
+    self.animation[self.state]:pause()
+  end
+
+  function char:resume()
+    self.animation[self.state]:resume()
   end
 
   function char:draw()
     local x, y = self.b:getPosition()
     self.animation[self.state]:draw(
       self.Spriteset,
-      x-12, y-16
+      x-12, y-20
     )
   end
 

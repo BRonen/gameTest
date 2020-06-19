@@ -1,11 +1,13 @@
-local TileW, TileH
+local map, TileW, TileH = {} 
 
-function loadMap(path)
+function map.load(path)
   return love.filesystem.load(path)()
 end
 
-function newMap(tileW, tileH, tilesetPath, tileString, quadInfo)
-  World = love.physics.newWorld(0, 0, true)
+function map.new(tileW, tileH, tilesetPath, tileString, quadInfo)
+  if World then World:destroy() end
+  
+  World = love.physics.newWorld()
   
   local function newBlock(x,y , w,h)
     local block = {}
@@ -58,13 +60,12 @@ function newMap(tileW, tileH, tilesetPath, tileString, quadInfo)
   end
   love.window.setMode(
     (#TileTable)*TileH,
-    (#TileTable[1])*TileW--[[,
-    { x=1, y=36}]]
+    (#TileTable[1])*TileW
   )
   return TileTable, tileW, tileH, f, blocks, World
 end
 
-function drawMap()
+function map.draw()
   for x,column in ipairs(TileTable) do
     for y,char in ipairs(column) do
       love.graphics.draw(
@@ -74,3 +75,5 @@ function drawMap()
     end
   end
 end
+
+return map
