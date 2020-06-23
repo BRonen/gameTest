@@ -3,9 +3,14 @@ Camera = require('Camera')
 map = require('map')
 require('character')
 
-local debug = false
+local debug = 1
 
-function love.load()
+function love.load(args)
+  canvas = love.graphics.newCanvas( 100, 100, {} )
+
+  for k, v in pairs(args) do
+    print(k, v)
+  end
 
   love.physics.setMeter(64)
 
@@ -17,9 +22,9 @@ function love.load()
   player:reset(400,300)
 
   camera = Camera()
-  --camera:setFollowStyle('LOCKON')
-  --camera:setFollowLerp(0.2)
-  --camera:setFollowLead(8)
+  camera:setFollowStyle('LOCKON')
+  camera:setFollowLerp(0.2)
+  camera:setFollowLead(1)
   camera.scale = 1
 
 end
@@ -45,21 +50,28 @@ function love.draw()
 end
 
 function love.update(dt)
+  player:test({
+    open = function() loadnewmap('maps/chez-peter.lua') end,
+    x = 400, y = 400
+  })
   if love.keyboard.isDown("right") then
     player:resume()
-    player.b:applyForce(800, 0)
+    player.b:applyForce(300, 0)
     player:setState("R")
-  end if love.keyboard.isDown("left") then
+  end
+  if love.keyboard.isDown("left") then
     player:resume()
-    player.b:applyForce(-800, 0)
+    player.b:applyForce(-300, 0)
     player:setState("L")
-  end if love.keyboard.isDown("up") then
+  end
+  if love.keyboard.isDown("up") then
     player:resume()
-    player.b:applyForce(0, -800)
+    player.b:applyForce(0, -300)
     player:setState("B")
-  end if love.keyboard.isDown("down") then
+  end
+  if love.keyboard.isDown("down") then
     player:resume()
-    player.b:applyForce(0, 800)
+    player.b:applyForce(0, 300)
     player:setState("F")
   end
   if not (
@@ -84,14 +96,12 @@ function love.keypressed(key)
   if key == 'e' then camera.scale = camera.scale + 1 end
   if key == 'q' then camera.scale = camera.scale - 1 end
   if key == 'r' then
-    x, y = player.b:getPosition()
-    map.load('maps/core-dump.lua')
-    player:reset(x,y)
-  end
-  if key == 'd' then
-    x, y = player.b:getPosition()
-    map.load('maps/chez-peter.lua')
-    player:reset(x,y)
+    loadnewmap('maps/core-dump.lua')
   end
   print(key)
+end
+
+function loadnewmap(mapa)
+    map.load(mapa)
+    player:reset(400,300)
 end

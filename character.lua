@@ -1,4 +1,8 @@
 
+function calculate(x, xx, y, yy)
+  return math.sqrt(((xx-x)^2) + ((yy-y)^2))
+end
+
 function character(path)
 
   local char = {stop = true, state = "F"}
@@ -32,6 +36,13 @@ function character(path)
       self.Spriteset,
       x-12, y-20
     )
+  end
+  
+  function char:test(door)
+    local x, y = self.b:getPosition()
+    if calculate(x, door.x, y, door.y) <= 32 then
+      door.open()
+    end
   end
 
   return char
