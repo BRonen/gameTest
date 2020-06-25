@@ -1,79 +1,70 @@
-local map, TileW, TileH = {} 
+local map = {}
 
-function map.load(path)
-  return love.filesystem.load(path)()
-end
-
-function map.new(tileW, tileH, tilesetPath, tileString, quadInfo)
+function map:new(path)
   if World then World:destroy() end
-  
   World = love.physics.newWorld()
-  
-  local function newBlock(x,y , w,h)
-    local block = {}
-    block.b = love.physics.newBody(World, x,y , "static")
-    block.s = love.physics.newRectangleShape(w,h)
-    block.f = love.physics.newFixture(block.b, block.s)
-    block.f:setUserData("Block")
-    return block
-  end
 
-  TileW = tileW
-  TileH = tileH
-  Tileset = love.graphics.newImage(tilesetPath)
-  
-  local tilesetW, tilesetH = Tileset:getWidth(), Tileset:getHeight()
-  
-  Quads, blocks = {}, {}
+  local tileString, quadInfo = love.filesystem.load(path)()
+  self.Tileset = love.graphics.newImage(quadInfo.path)
+  local tilesetW, tilesetH = self.Tileset:getWidth(), self.Tileset:getHeight()
+  self.Quads, Statics.blocks = {}, {}
   
   for _,info in ipairs(quadInfo) do
     -- info[1] = the character, info[2] = x, info[3] = y
-    Quads[info[1]] = love.graphics.newQuad(info[2], info[3],
+    self.Quads[info[1]] = love.graphics.newQuad(
+      info[2], info[3],
       TileW,  TileH,
       tilesetW, tilesetH
-    )
+    )--piece by piece in "dictionary"
   end
   
-  TileTable = {}
+  self.TileTable = {}
   
-  local width = #(tileString:match("[^\n]+"))
+  local lineWidth = #(tileString:match("[^\n]+"))
 
-  for x = 1,width,1 do TileTable[x] = {} end
+  for x = 1,lineWidth,1 do self.TileTable[x] = {} end
 
   local rowIndex,columnIndex = 1,1
-  for row in tileString:gmatch("[^\n]+") do
-    assert(#row == width, 'Map is not aligned: width of row ' ..
-      tostring(rowIndex) .. ' should be ' .. tostring(width) ..
+  for row in tileString:gmatch("[^\n]+") do --for row in tile string
+    assert(#row == lineWidth, 'Map is not aligned: width of row ' .. --test if map is formatted
+      tostring(rowIndex) .. ' should be ' .. tostring(lineWidth) ..
       ', but it is ' .. tostring(#row)
-    )
+    ) --test if map is formatted
     columnIndex = 1
-    for character in row:gmatch(".") do
-      TileTable[columnIndex][rowIndex] = character
+    
+    for character in row:gmatch(".") do --for character in row
+      self.TileTable[columnIndex][rowIndex] = character --set tiles into tile table
       columnIndex = columnIndex + 1
-      if character == "#" then
-        table.insert(blocks, newBlock(
+      
+      if character == "#" then --if wall
+        table.insert( Statics, createStatic( --add static blocks to collid
+          "Block",
           ((columnIndex-1)*32)-16, (rowIndex*32)-16,
-          tileW, tileH))
-      end
-    end
+          TileW, TileH
+        ) )
+      end --add static blocks to collid
+      
+    end --for character in row
+    
     rowIndex=rowIndex+1
-  end
+  end --for row in tile string
+  
   love.window.setMode(
-    (#TileTable)*TileH,
-    (#TileTable[1])*TileW
-  )
-  return TileTable, tileW, tileH, f, blocks, World
+    (#(self.TileTable))*TileH,
+    (#(self.TileTable[1]))*TileW
+  ) --set size of window
+  
 end
 
-function map.draw()
-  for x,column in ipairs(TileTable) do
+function map:draw()
+  for x,column in ipairs(self.TileTable) do
     for y,char in ipairs(column) do
       love.graphics.draw(
-        Tileset, Quads[ char ],
+        self.Tileset, self.Quads[ char ],
         (x-1)*TileW, (y-1)*TileH
       )
     end
   end
 end
 
-return map
+return map --TODO: *REFACTORY*

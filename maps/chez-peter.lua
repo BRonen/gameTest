@@ -21,7 +21,7 @@ local tileString = [[
 #########################
 ]]
 
-local quadInfo = { 
+local quadInfo = {
   { ' ',  0,  0 }, -- floor 
   { '[', 32,  0 }, -- table top left
   { ']', 64,  0 }, -- table top right
@@ -32,4 +32,8 @@ local quadInfo = {
   { '#', 96,  0 }  -- bricks
 }
 
-return map.new(32, 32, '/tiles/resto.png', tileString, quadInfo, world)
+quadInfo.path = '/tiles/resto.png' --tileImagePath
+
+TileW, TileH = 32, 32
+
+return tileString, quadInfo
