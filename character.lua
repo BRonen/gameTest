@@ -1,47 +1,72 @@
 local anim8 = require 'anim8'
 
 function character(path, name)
-  local char = {name=name, stop = true, state = "f", activater = {}}
+  local char = {name=name, stop = true, state = "f"}
 
   local spriteInfo = {
-    { 'f' , 1, '1-3', 0.1 },
-    { 'l' , 2, '1-3', 0.1 },
-    { 'r' , 3, '1-3', 0.1 },
-    { 'b' , 4, '1-3', 0.1 }
+    { 'b' , 9, '2-9', 0.1 },
+    { 'l' , 10, '1-9', 0.2 },
+    { 'f' , 11, '2-9', 0.1 },
+    { 'r' , 12, '1-9', 0.2 }
   }--improve
 
   char.spriteset = love.graphics.newImage(path)
-  char.animation = newAnimations(char.spriteset, spriteInfo, 25, 32)
+  char.animation = newAnimations(char.spriteset, spriteInfo, 64, 64)
 
   function char:init(x, y)
     self.body = love.physics.newBody(World, x, y, "dynamic")
-    self.shape = love.physics.newCircleShape(10)
+    self.shape = love.physics.newCircleShape(14)
     self.fixture = love.physics.newFixture(self.body, self.shape)
     self.fixture:setUserData(self.name)
     self.fixture:setRestitution(0.2)
-    
-    colisoes[self.name] = {Block = function() print("pft") end}
 
-    self.activater.body = love.physics.newBody(World, x, y+32, "dynamic")
+    
+    self.activater = {}
+    self.activater.body = love.physics.newBody(World, x, y+28, "dynamic")
     self.activater.shape = love.physics.newCircleShape(10)
     self.activater.fixture = love.physics.newFixture(self.activater.body, self.activater.shape)
     self.activater.fixture:setUserData(self.name.."Activer")
-    
-    colisoes[self.name .. "Activer"] = {Block = function() print("parede") end}
 
     self.activater.update = {} --improve this
+    
     self.activater.update["f"] = function(x,y)
-      self.activater.body:setPosition(x, y+25)
+      self.activater.body:setPosition(x, y+28)
     end
     self.activater.update["b"] = function(x,y)
-      self.activater.body:setPosition(x, y-25)
+      self.activater.body:setPosition(x, y-28)
     end
     self.activater.update["l"] = function(x,y)
-      self.activater.body:setPosition(x-25, y)
+      self.activater.body:setPosition(x-28, y)
     end
     self.activater.update["r"] = function(x,y)
-      self.activater.body:setPosition(x+25, y)
+      self.activater.body:setPosition(x+28, y)
     end
+  end
+  
+  Colisoes[char.name] = function(target)
+    print("in coll")
+    colCallbacks = {}
+    colCallbacks["Button"] = function() print("Player collision between with button") end
+      
+    for name, callback in pairs(colCallbacks) do
+      print("callback test [ply]")
+      if name == target then callback() end
+    end
+    print("on coll")
+  end
+  
+  Colisoes[char.name.."Activer"] = function(target)
+    print("in coll")
+    colCallbacks = {}
+    colCallbacks["Button"] = function() print("Activater collision between with button") end
+    colCallbacks["Block"] = function() print("Activater collision between with button") end
+    colCallbacks["Table"] = function() print("Activater collision between with table") end
+      
+    for name, callback in pairs(colCallbacks) do
+      print("callback test [act]")
+      if name == target then callback() end
+    end
+    print("on coll")
   end
 
   function char:setState(state)
@@ -49,7 +74,7 @@ function character(path, name)
   end
 
   function char:stop()
-    self.animation[self.state]:gotoFrame(2)
+    self.animation[self.state]:gotoFrame(1)
     self.animation[self.state]:pause()
   end
 
@@ -93,7 +118,7 @@ function character(path, name)
     local x, y = self.body:getPosition()
     self.animation[self.state]:draw(
       self.spriteset,
-      x-12, y-21
+      x-32, y-48
     )
   end
 

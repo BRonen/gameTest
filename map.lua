@@ -1,6 +1,9 @@
 local map = {}
+local canvas
+local canvasImg
 
 function map:new(path)
+  local time = love.timer.getTime( )
   if World then World:destroy() end
   World = love.physics.newWorld()
 
@@ -40,31 +43,39 @@ function map:new(path)
         table.insert( Statics, createStatic( --add static blocks to collid
           "Block",
           ((columnIndex-1)*32)-16, (rowIndex*32)-16,
-          TileW, TileH
-        ) )
-      end --add static blocks to collid
+          TileW-2, TileH-2
+        ) ) --add static blocks to collid
+      end 
       
     end --for character in row
     
     rowIndex=rowIndex+1
   end --for row in tile string
   
-  love.window.setMode(
+  canvas = love.graphics.newCanvas(
     (#(self.TileTable))*TileH,
     (#(self.TileTable[1]))*TileW
-  ) --set size of window
+  )
   
+  canvas:renderTo(function()
+    for x,column in ipairs(self.TileTable) do
+      for y,char in ipairs(column) do
+        love.graphics.draw(
+          self.Tileset, self.Quads[ char ],
+          (x-1)*TileW, (y-1)*TileH
+        )
+      end
+    end
+  end) --set render function to canvas
+  
+  canvasImg = love.graphics.newImage(
+    canvas:newImageData( )
+  )
+  if Debug then print("Loading map: " .. love.timer.getTime( ) - time) end
 end
 
 function map:draw()
-  for x,column in ipairs(self.TileTable) do
-    for y,char in ipairs(column) do
-      love.graphics.draw(
-        self.Tileset, self.Quads[ char ],
-        (x-1)*TileW, (y-1)*TileH
-      )
-    end
-  end
+  love.graphics.draw(canvasImg) --render canvas
 end
 
 return map --TODO: *REFACTORY*

@@ -29,4 +29,9 @@ local quadInfo = {
   { '*', 96,  0 }, -- plant top
   { 'l', 96, 32 }  -- plant bottom
 }
-return map.new(32,32,'/tiles/lab.png', tileString, quadInfo)
+
+quadInfo.path = '/tiles/lab.png' --tileImagePath
+
+TileW, TileH = 32, 32
+
+return tileString, quadInfo
