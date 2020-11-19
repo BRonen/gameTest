@@ -12,13 +12,13 @@ function createStatic(label,x,y,w,h)
   static.shape = love.physics.newRectangleShape(w,h)
   static.fixture = love.physics.newFixture(static.body, static.shape)
   static.fixture:setUserData(label)
-  
+
   function static:hasColCallback(b)
     print("dasjkhdjkashgfdkjsahjckhbsduibncewsibwcuiewnjcknew")
   end
-  
-  Colisoes[label] = function(target) end 
-  
+
+  Colisoes[label] = function(target) end
+
   return static
 end
 
@@ -52,7 +52,7 @@ function love.load(args)
   player = character('/skins/skeleton.png', "Player")
   player:init(400,300)
   player.body:setMass(5)
-  
+
   --[[npc = character('/skins/saitama.png', "NPC")
   npc:init(200,300)
   npc.body:setMass(5)]]
@@ -62,7 +62,7 @@ function love.load(args)
   --Cam:setFollowLerp(2)
   --Cam:setFollowLead(0.5)
   Cam.scale = 1
-  
+
   if Debug then print("love.load: " .. love.timer.getTime( ) - time) end
 end
 
@@ -76,21 +76,21 @@ function love.draw()
     love.graphics.circle("line", player.body:getX(), player.body:getY(), player.shape:getRadius())--player
     --love.graphics.circle("line", player.body:getX(), player.body:getY(), player.shape:getRadius())--player
     love.graphics.circle("line", player.activater.body:getX(), player.activater.body:getY(), player.activater.shape:getRadius())--player's collider
-    
+
     --love.graphics.circle("line", npc.body:getX(), npc.body:getY(), npc.shape:getRadius())
     --love.graphics.circle("line", npc.activater.body:getX(), npc.activater.body:getY(), npc.activater.shape:getRadius())
-    
+
     for _, obj in ipairs(Statics) do
       love.graphics.polygon("fill", obj.body:getWorldPoints(obj.shape:getPoints())) --Static blocks
     end
-    
+
     local touches = love.touch.getTouches()
- 
+
     for _, id in ipairs(touches) do
         local x, y = love.touch.getPosition(id)
         love.graphics.circle("fill", x, y, 20)
     end
-    
+
     love.graphics.print('FPS: ' .. love.timer.getFPS(), Cam:toWorldCoords(40, 48))
     love.graphics.print('Memory usage: ' .. math.floor(collectgarbage 'count') .. 'kb', Cam:toWorldCoords(40, 64))
   end
@@ -108,7 +108,7 @@ function love.update(dt)
   else
     Activate = false
   end
-  
+
   if love.keyboard.isDown("right") then
     player.move:right(dt)
   end
@@ -121,7 +121,7 @@ function love.update(dt)
   if love.keyboard.isDown("down") then
     player.move:down(dt)
   end
-  
+
   Cam:update(dt)
   World:update(dt)
   player:update(dt)

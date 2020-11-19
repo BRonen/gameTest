@@ -56,6 +56,10 @@ function map:new(path)
     (#(self.TileTable))*TileH,
     (#(self.TileTable[1]))*TileW
   )
+  love.window.setMode(
+    (#(self.TileTable))*TileH,
+    (#(self.TileTable[1]))*TileW
+  )
   
   canvas:renderTo(function()
     for x,column in ipairs(self.TileTable) do
