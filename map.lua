@@ -5,7 +5,7 @@ function map:new(path)
   if World then World:destroy() end
   World = love.physics.newWorld()
 
-  local tileString, quadInfo = love.filesystem.load(path)()
+  local tileString, quadInfo, especialsInfo = love.filesystem.load(path)()
   self.Tileset = love.graphics.newImage(quadInfo.path)
   local tilesetW, tilesetH = self.Tileset:getWidth(), self.Tileset:getHeight()
   self.Quads, Statics.blocks = {}, {}
@@ -27,10 +27,10 @@ function map:new(path)
 
   local rowIndex,columnIndex = 1,1
   for row in tileString:gmatch("[^\n]+") do --for row in tile string
-    --[[assert(#row == lineWidth, 'Map is not aligned: width of row ' .. --test if map is formatted
+    assert(#row == lineWidth, 'Map is not aligned: width of row ' .. --test if map is formatted
       tostring(rowIndex) .. ' should be ' .. tostring(lineWidth) ..
       ', but it is ' .. tostring(#row)
-    ) --test if map is formatted]]
+    ) --test if map is formatted
     columnIndex = 1
 
     for character in row:gmatch(".") do --for character in row
@@ -38,12 +38,8 @@ function map:new(path)
         self.TileTable[columnIndex][rowIndex] = character --set tiles into tile table
         columnIndex = columnIndex + 1
 
-        if character == "#" then --if wall
-          table.insert( Statics, createStatic( --add static blocks to collid
-            "Block",
-            ((columnIndex-1)*32)-16, (rowIndex*32)-16,
-            TileW-2, TileH-2
-          ) ) --add static blocks to collid
+        if especialsInfo[character] then --if has especial properties
+          especialsInfo[character](rowIndex, columnIndex)
         end
       end
 

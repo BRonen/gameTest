@@ -1,43 +1,45 @@
 
 local tileString = [[
 ################################  ###
-            #                #      #
-            #  L[]R   L[]R   # L[]R #
-            #  L()R   L()R   # L()R #
-            #                #      #
-            #                ###  ###
-            #  L[]R   L[]R          #
-            #  L()R   L()R    L[]R   /
-                              L()R   /
-                                     /
-                                     /
-            #  L[]R   L[]R          #
-            #  L()R   L()R   ###  ###
-            #                #LL  RR#
-            #                #LL  RR#
-            #  L[]R   L[]R   #LL  RR#
-            #  L()R   L()R   #LL  RR#
-            #                #LL  RR#
+#           #                #      #
+#           #  L[]R   L[]R   # L[]R #
+#           #  L()R   L()R   # L()R #
+#           #                #      #
+#           #                ###  ###
+#           #  L[]R   L[]R          #
+#           #  L()R   L()R    L[]R  #
+#                             L()R  #
+#                                   #
+#                                   #
+#           #  L[]R   L[]R          #
+#           #  L()R   L()R   ###  ###
+#           #                #LL  RR#
+#           #                #LL  RR#
+#           #  L[]R   L[]R   #LL  RR#
+#           #  L()R   L()R   #LL  RR#
+#           #                #LL  RR#
 ###################    #########  ###
-            #                #      #
-            #  L[]R   L[]R   # L[]R #
-            #  L()R   L()R   # L()R #
-            #                #      #
-            #                ###  ###
-            #  L[]R   L[]R          #
-            #  L()R   L()R    L[]R   /
-                              L()R   /
-                                     /
-                                     /
-            #  L[]R   L[]R          #
-            #  L()R   L()R   ###  ###
-            #                #LL  RR#
-            #                #LL  RR#
-            #  L[]R   L[]R   #LL  RR#
-            #  L()R   L()R   #LL  RR#
-            #                #LL  RR#
+#           #                #      #
+#           #  L[]R   L[]R   # L[]R #
+#           #  L()R   L()R   # L()R #
+#           #                #      #
+#           #                ###  ###
+#           #  L[]R   L[]R          #
+#           #  L()R   L()R    L[]R  #
+#                             L()R  #
+#                                   #
+#                                   #
+#           #  L[]R   L[]R          #
+#           #  L()R   L()R   ###  ###
+#           #                #LL  RR#
+#           #                #LL  RR#
+#           #  L[]R   L[]R   #LL  RR#
+#           #  L()R   L()R   #LL  RR#
+#           #                #LL  RR#
 #####################################
 ]]
+
+TileW, TileH = 32, 32
 
 local quadInfo = {
   { ' ',  0,  0 }, -- floor
@@ -50,8 +52,16 @@ local quadInfo = {
   { '#', 96,  0 }  -- bricks
 }
 
+local especialsInfo = {}
+
+especialsInfo['#'] = function(rowIndex, columnIndex)
+  table.insert( Statics, createStatic( --add static blocks to collid
+    "Block",
+    ((columnIndex-1)*32)-16, (rowIndex*32)-16,
+    TileW-2, TileH-2
+  ) ) --add static blocks to collid
+end
+
 quadInfo.path = '/tiles/resto.png' --tileImagePath
 
-TileW, TileH = 32, 32
-
-return tileString, quadInfo
+return tileString, quadInfo, especialsInfo

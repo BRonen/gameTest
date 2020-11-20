@@ -105,19 +105,19 @@ function character(path, name)
 
   char.move = {direction = "f", vecX=0, vecY=0} --improve this
   function char.move:right(dt)
-    self.vecX = 500000*dt
+    self.vecX = 700000*dt
     self.direction = "r"
   end
   function char.move:left(dt)
-    self.vecX = -500000*dt
+    self.vecX = -700000*dt
     self.direction = "l"
   end
   function char.move:up(dt)
-    self.vecY = -500000*dt
+    self.vecY = -700000*dt
     self.direction = "b"
   end
   function char.move:down(dt)
-    self.vecY = 500000*dt
+    self.vecY = 700000*dt
     self.direction = "f"
   end
 

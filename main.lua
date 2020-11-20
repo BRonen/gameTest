@@ -98,6 +98,32 @@ function love.draw()
 
     love.graphics.print('FPS: ' .. love.timer.getFPS(), Cam:toWorldCoords(40, 48))
     love.graphics.print('Memory usage: ' .. math.floor(collectgarbage 'count') .. 'kb', Cam:toWorldCoords(40, 64))
+
+    --touch buttons
+    local x, y = Cam:toWorldCoords(100, 500)
+    love.graphics.rectangle("fill",
+      x, y,
+      100, 100
+    )
+
+    x, y = Cam:toWorldCoords(100, 300)
+    love.graphics.rectangle("fill",
+      x, y,
+      100, 100
+    )
+
+    x, y = Cam:toWorldCoords(0, 400)
+    love.graphics.rectangle("fill",
+      x, y,
+      100, 100
+    )
+
+    x, y = Cam:toWorldCoords(200, 400)
+    love.graphics.rectangle("fill",
+      x, y,
+      100, 100
+    )
+
   end
 
   mapper:drawMinimap()
@@ -105,6 +131,46 @@ function love.draw()
   Cam:detach()
   Cam:draw()
 end
+
+function love.touchpressed(id, x, y)
+  local dt = love.timer.getDelta( )
+  if
+    x > 100 and x < 200 and
+    y > 500 and y < 600
+  then player.move:down(dt) end
+  if
+    x > 100 and x < 200 and
+    y > 300 and y < 400
+  then player.move:up(dt) end
+  if
+    x > 000 and x < 100 and
+    y > 400 and y < 500
+  then player.move:left(dt) end
+  if
+    x > 200 and x < 300 and
+    y > 400 and y < 500
+  then player.move:right(dt) end
+end
+
+--[[function love.mousepressed(x, y)
+  local dt = love.timer.getDelta( )
+  if
+    x > 100 and x < 200 and
+    y > 500 and y < 600
+  then player.move:down(dt) end
+  if
+    x > 100 and x < 200 and
+    y > 300 and y < 400
+  then player.move:up(dt) end
+  if
+    x > 000 and x < 100 and
+    y > 400 and y < 500
+  then player.move:left(dt) end
+  if
+    x > 200 and x < 300 and
+    y > 400 and y < 500
+  then player.move:right(dt) end
+end]]
 
 function love.gamepadpressed()
   return
