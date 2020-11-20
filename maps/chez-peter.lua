@@ -1,28 +1,46 @@
 
 local tileString = [[
-#########################
-#                #      #
-#  L[]R   L[]R   # L[]R #
-#  L()R   L()R   # L()R #
-#                #      #
-#                ###  ###
-#  L[]R   L[]R          #
-#  L()R   L()R    L[]R  #
-                  L()R  #
-                        #
-                        #
-#  L[]R   L[]R          #
-#  L()R   L()R   ###  ###
-#                #LL  RR#
-#                #LL  RR#
-#  L[]R   L[]R   #LL  RR#
-#  L()R   L()R   #LL  RR#
-#                #LL  RR#
-#########################
+################################  ###
+            #                #      #
+            #  L[]R   L[]R   # L[]R #
+            #  L()R   L()R   # L()R #
+            #                #      #
+            #                ###  ###
+            #  L[]R   L[]R          #
+            #  L()R   L()R    L[]R   /
+                              L()R   /
+                                     /
+                                     /
+            #  L[]R   L[]R          #
+            #  L()R   L()R   ###  ###
+            #                #LL  RR#
+            #                #LL  RR#
+            #  L[]R   L[]R   #LL  RR#
+            #  L()R   L()R   #LL  RR#
+            #                #LL  RR#
+###################    #########  ###
+            #                #      #
+            #  L[]R   L[]R   # L[]R #
+            #  L()R   L()R   # L()R #
+            #                #      #
+            #                ###  ###
+            #  L[]R   L[]R          #
+            #  L()R   L()R    L[]R   /
+                              L()R   /
+                                     /
+                                     /
+            #  L[]R   L[]R          #
+            #  L()R   L()R   ###  ###
+            #                #LL  RR#
+            #                #LL  RR#
+            #  L[]R   L[]R   #LL  RR#
+            #  L()R   L()R   #LL  RR#
+            #                #LL  RR#
+#####################################
 ]]
 
 local quadInfo = {
-  { ' ',  0,  0 }, -- floor 
+  { ' ',  0,  0 }, -- floor
   { '[', 32,  0 }, -- table top left
   { ']', 64,  0 }, -- table top right
   { '(', 32, 32 }, -- table bottom left

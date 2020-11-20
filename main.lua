@@ -53,10 +53,6 @@ function love.load(args)
   player:init(400,300)
   player.body:setMass(5)
 
-  --[[npc = character('/skins/saitama.png', "NPC")
-  npc:init(200,300)
-  npc.body:setMass(5)]]
-
   Cam = Camera()
   --Cam:setFollowStyle('LOCKON')
   --Cam:setFollowLerp(2)
@@ -69,19 +65,28 @@ end
 function love.draw()
   Cam:attach()
 
-  mapper:draw()
+  mapper:drawMap()
   player:draw()
 
   if Debug then
-    love.graphics.circle("line", player.body:getX(), player.body:getY(), player.shape:getRadius())--player
-    --love.graphics.circle("line", player.body:getX(), player.body:getY(), player.shape:getRadius())--player
-    love.graphics.circle("line", player.activater.body:getX(), player.activater.body:getY(), player.activater.shape:getRadius())--player's collider
+    love.graphics.circle("line",
+      player.body:getX(),
+      player.body:getY(),
+      player.shape:getRadius()
+    )--player
 
-    --love.graphics.circle("line", npc.body:getX(), npc.body:getY(), npc.shape:getRadius())
-    --love.graphics.circle("line", npc.activater.body:getX(), npc.activater.body:getY(), npc.activater.shape:getRadius())
+    love.graphics.circle("line",
+      player.activater.body:getX(),
+      player.activater.body:getY(),
+      player.activater.shape:getRadius()
+    )--player's collider
 
     for _, obj in ipairs(Statics) do
-      love.graphics.polygon("fill", obj.body:getWorldPoints(obj.shape:getPoints())) --Static blocks
+      love.graphics.polygon("fill",
+        obj.body:getWorldPoints(
+          obj.shape:getPoints()
+        )
+      ) --Static blocks
     end
 
     local touches = love.touch.getTouches()
@@ -94,6 +99,9 @@ function love.draw()
     love.graphics.print('FPS: ' .. love.timer.getFPS(), Cam:toWorldCoords(40, 48))
     love.graphics.print('Memory usage: ' .. math.floor(collectgarbage 'count') .. 'kb', Cam:toWorldCoords(40, 64))
   end
+
+  mapper:drawMinimap()
+
   Cam:detach()
   Cam:draw()
 end
@@ -135,11 +143,11 @@ end
 
 function beginContact(a, b, coll)
   print("\n\n"..a:getUserData() .. " colidded " .. b:getUserData())
-    print("pre coll")
+    print("pre collision")
     Colisoes[b:getUserData()](a:getUserData())
-    print("sec coll")
+    print("sec collision")
     Colisoes[a:getUserData()](b:getUserData())
-    print("pos coll\n")
+    print("pos collision\n")
 end
 
 function endContact(a, b, coll)

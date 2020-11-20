@@ -8,7 +8,7 @@ function character(path, name)
     { 'l' , 10, '1-9', 0.2 },
     { 'f' , 11, '2-9', 0.1 },
     { 'r' , 12, '1-9', 0.2 }
-  }--improve
+  }
 
   char.spriteset = love.graphics.newImage(path)
   char.animation = newAnimations(char.spriteset, spriteInfo, 64, 64)
@@ -20,7 +20,7 @@ function character(path, name)
     self.fixture:setUserData(self.name)
     self.fixture:setRestitution(0.2)
 
-    
+
     self.activater = {}
     self.activater.body = love.physics.newBody(World, x, y+28, "dynamic")
     self.activater.shape = love.physics.newCircleShape(10)
@@ -28,7 +28,7 @@ function character(path, name)
     self.activater.fixture:setUserData(self.name.."Activer")
 
     self.activater.update = {} --improve this
-    
+
     self.activater.update["f"] = function(x,y)
       self.activater.body:setPosition(x, y+28)
     end
@@ -42,26 +42,26 @@ function character(path, name)
       self.activater.body:setPosition(x+28, y)
     end
   end
-  
+
   Colisoes[char.name] = function(target)
     print("in coll")
     colCallbacks = {}
     colCallbacks["Button"] = function() print("Player collision between with button") end
-      
+
     for name, callback in pairs(colCallbacks) do
       print("callback test [ply]")
       if name == target then callback() end
     end
     print("on coll")
   end
-  
+
   Colisoes[char.name.."Activer"] = function(target)
     print("in coll")
     colCallbacks = {}
     colCallbacks["Button"] = function() print("Activater collision between with button") end
     colCallbacks["Block"] = function() print("Activater collision between with button") end
     colCallbacks["Table"] = function() print("Activater collision between with table") end
-      
+
     for name, callback in pairs(colCallbacks) do
       print("callback test [act]")
       if name == target then callback() end
@@ -83,34 +83,41 @@ function character(path, name)
   end
 
   function char:update(dt)
-    self.body:setLinearVelocity(0, 0)
-    self.activater.body:setLinearVelocity(0, 0)
-    self.animation[self.state]:update(dt)
-    self:resume()
-    self:setState(self.move.direction)
-    self.activater.update[self.state](self.body:getPosition())
-    self.body:applyForce(self.move.vecX, self.move.vecY)
-    if self.move.vecX == 0 and self.move.vecY == 0 then
+
+    self.body:setLinearVelocity(0, 0) --stop player
+    self.activater.body:setLinearVelocity(0, 0) --stop player activater
+
+    self.animation[self.state]:update(dt) --update animation (anim8)
+
+    self:resume() --resume (if already resume, just do nothing)
+
+    self:setState(self.move.direction) --update player's direction
+
+    self.body:applyForce(self.move.vecX, self.move.vecY) --move player
+
+    self.activater.update[self.state](self.body:getPosition()) --move player activater (check line 30)
+
+    if self.move.vecX == 0 and self.move.vecY == 0 then --if stopped
       self:stop()
     end
-    self.move.vecX, self.move.vecY = 0, 0
+    self.move.vecX, self.move.vecY = 0, 0 --reset velocity
   end
 
   char.move = {direction = "f", vecX=0, vecY=0} --improve this
   function char.move:right(dt)
-    self.vecX = 1000000*dt
+    self.vecX = 500000*dt
     self.direction = "r"
   end
   function char.move:left(dt)
-    self.vecX = -1000000*dt
+    self.vecX = -500000*dt
     self.direction = "l"
   end
   function char.move:up(dt)
-    self.vecY = -1000000*dt
+    self.vecY = -500000*dt
     self.direction = "b"
   end
   function char.move:down(dt)
-    self.vecY = 1000000*dt
+    self.vecY = 500000*dt
     self.direction = "f"
   end
 
@@ -123,7 +130,7 @@ function character(path, name)
   end
 
   return char
-end --TODO: REFACTORY
+end
 
 function newAnimations(spriteset, spriteInfo, width, height)
   local animations = {}
