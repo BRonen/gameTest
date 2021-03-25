@@ -55,11 +55,6 @@ local quadInfo = {
 local especialsInfo = {}
 
 especialsInfo['#'] = function(rowIndex, columnIndex)
-  table.insert( Statics, createStatic( --add static blocks to collid
-    "Block",
-    ((columnIndex-1)*32)-16, (rowIndex*32)-16,
-    TileW-2, TileH-2
-  ) ) --add static blocks to collid
 end
 
 quadInfo.path = '/tiles/resto.png' --tileImagePath

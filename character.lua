@@ -1,4 +1,75 @@
+
 local anim8 = require 'anim8'
+
+Character = {}
+Character.__index = Character
+
+function Character.new(x, y, path)
+  local char = {}
+  setmetatable(char, Character)
+  
+  char.x = x
+  char.y = y
+
+  char.spriteset = love.graphics.newImage(path)
+  char.animations = {}
+
+  local g = anim8.newGrid(
+    25, 32,
+    char.spriteset:getWidth(),
+    char.spriteset:getHeight(),
+    0, 1, 0
+  )
+  char.animations['f'] = anim8.newAnimation(g('1-3',1, 2, 1), 0.1)
+  char.animations['l'] = anim8.newAnimation(g('1-3',2, 2, 2), 0.1)
+  char.animations['r'] = anim8.newAnimation(g('1-3',3, 2, 3), 0.1)
+  char.animations['b'] = anim8.newAnimation(g('1-3',4, 2, 4), 0.1)
+  char.direction = 'f'
+  char.state = 'pause'
+
+  return char
+end
+
+function Character.update(self, dt)
+  self.animations[self.direction]:update(dt) --update animation (anim8)
+  if self.state == 'resume' then
+    if self.direction == 'f' then
+      self.y = self.y + 5
+    end
+    if self.direction == 'b' then
+      self.y = self.y - 5
+    end
+    if self.direction == 'r' then
+      self.x = self.x + 5
+    end
+    if self.direction == 'l' then
+      self.x = self.x - 5
+    end
+  end
+end
+
+function Character.moveListener(self, moveEvent)
+  self.animations[self.direction]:resume()
+  if moveEvent[2] == 'stop' then
+    self.animations[self.direction]:gotoFrame(2)
+    self.animations[self.direction]:pause()
+    self.state = 'pause'
+    return
+  end
+  self.state = 'resume'
+  self.direction = moveEvent[2]
+end
+
+function Character.draw(self)
+  self.animations[self.direction]:draw(
+    self.spriteset,
+    self.x-32, self.y-48
+  )
+end
+
+return Character
+
+--[[
 
 function character(path, name)
   local char = {name=name, stop = true, state = "f"}
@@ -122,21 +193,11 @@ function character(path, name)
   end
 
   function char:draw()
-    local x, y = self.body:getPosition()
-    self.animation[self.state]:draw(
-      self.spriteset,
-      x-32, y-48
-    )
+    
   end
 
   return char
 end
 
-function newAnimations(spriteset, spriteInfo, width, height)
-  local animations = {}
-  local g = anim8.newGrid(width, height, spriteset:getWidth(), spriteset:getHeight(), 0, 0)
-  for _, grids in ipairs(spriteInfo) do
-    animations[grids[1]] = anim8.newAnimation(g(grids[3],grids[2] ,2, grids[2]), grids[4])
-  end
-  return animations
-end
+
+]]
