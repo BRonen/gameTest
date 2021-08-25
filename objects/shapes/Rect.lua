@@ -12,11 +12,24 @@ function Rect:new(world, x, y, w, h)
   rect.x, rect.y = x, y
   rect.w, rect.h = w, h
 
+  rect.color = {
+    math.random(1, 255)/255,
+    math.random(1, 255)/255,
+    math.random(1, 255)/255
+  }
+
   return rect
 end
 
-function Rect.draw(self)
-  love.graphics.rectangle('line', self.x-400, self.y-300, self.w, self.h)
+function Rect.update(self, dt)
+end
+
+function Rect.draw(self, tx, ty)
+  tx = tx or 0
+  ty = ty or 0
+  love.graphics.setColor(self.color)
+  love.graphics.rectangle('fill', self.x+tx, self.y+ty, self.w, self.h)
+  love.graphics.setColor(1,1,1)
 end
 
 return Rect

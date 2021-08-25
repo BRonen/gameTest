@@ -1,32 +1,38 @@
 local Char = require('libs.Char')
 
-local mapper = require('libs.mapper'):new()
+local World = love.physics.newWorld(0, 0)
+
+local Mapper = require('libs.Mapper')
 
 local Line = require('objects.shapes.Line')
-local Rect = require('objects.shapes.Rect')
-
-local World = love.physics.newWorld(0, 0)
 local Walls = {}
 
+local DEBUG = true
+
 local p
+local mapper
 
 function love.load(args)
   love.graphics.setDefaultFilter('nearest', 'nearest')
-
-  love.Globals = {}
   local w, h = love.graphics.getDimensions()
-  print('RESOLUTION: ', w, h)
-  p = Char:new(World, w/2, h/2)
-  table.insert(Walls, Line:new(World, 0, 0, 0, w))
-  table.insert(Walls, Line:new(World, 0, w, h, w))
-  table.insert(Walls, Line:new(World, h, w, h, 0))
-  table.insert(Walls, Line:new(World, h, 0, 0, 0))
-  table.insert(Walls, Rect:new(World, 100, 100, 150, 150))
+
+  if DEBUG then
+    print('\n==========')
+    print('PROCESSOR NUMBER: ', love.system.getProcessorCount())
+    print('RESOLUTION:       ', w, h)
+    print('POWER INFO:       ', love.system.getPowerInfo())
+    print('OS INFO:          ', love.system.getOS())
+    print('==========\n')
+  end
+
+  mapper = Mapper:new(World)
+  
+  p = Char:new(World, 160, 360)
 end
 
 function love.update(dt)
-  Event:update(dt)
   World:update(dt)
+  mapper:update(dt)
   p:update(dt)
 end
 
@@ -45,17 +51,9 @@ function love.draw()
   
 	love.graphics.translate(-tx, -ty)
 
-  mapper:draw((p.offset.x), (p.offset.y))
+  mapper:draw(-(p.offset.x), -(p.offset.y))
 
-  for _, line in ipairs(Walls) do
-    line:draw()
-  end
-  for _, shot in ipairs(p.Shots) do
-    local x, y = shot.b:getPosition()
-    love.graphics.setColor(255, 0, 0)
-    love.graphics.circle('fill', x-400, y-300, 5)
-    love.graphics.setColor(255, 255, 255)
-  end
+  p:drawShots()
 
   love.graphics.pop()
 
@@ -72,6 +70,10 @@ end
 
 function love.mousepressed(cx, cy)
   p:shot(cx, cy, World)
+end
+
+function love.resize(w, h)
+  p:setOffset(w/2, h/2)
 end
 
 function love.keypressed(key)

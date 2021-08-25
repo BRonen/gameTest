@@ -7,13 +7,14 @@ function Char:new(world, x, y)
   setmetatable(char, self)
   self.__index = self
 
-  char.b = love.physics.newBody(world, x-5/2, y-5/2, 'dynamic')
+  char.b = love.physics.newBody(world, x, y, 'dynamic')
   char.b:setMass(1)
-  char.s = love.physics.newCircleShape(5)
+  char.s = love.physics.newRectangleShape(22,28)
   char.f = love.physics.newFixture(char.b, char.s)
 
-  local w, h = love.graphics.getDimensions()
   char.angle = 0
+
+  local w, h = love.graphics.getDimensions()
   char.offset = {
     x = w/2,
     y = h/2
@@ -21,7 +22,7 @@ function Char:new(world, x, y)
 
   char.Shots = {}
 
-  char.state = {actual = 'f', prev = 'f'}
+  char.animstate = 'n'
 
   char.spriteset = love.graphics.newImage('assets/Player.png')
   local g = anim8.newGrid(
@@ -31,49 +32,99 @@ function Char:new(world, x, y)
     0, 1, 0
   )
   local anim = {}
-  anim['f'] = anim8.newAnimation(g('1-3',1, 2, 1), 0.2)
-  anim['l'] = anim8.newAnimation(g('1-3',2, 2, 2), 0.2)
-  anim['r'] = anim8.newAnimation(g('1-3',3, 2, 3), 0.2)
-  anim['b'] = anim8.newAnimation(g('1-3',4, 2, 4), 0.2)
+  anim['s'] = anim8.newAnimation(g('1-3',1, 2, 1), 0.2)
+  anim['w'] = anim8.newAnimation(g('1-3',2, 2, 2), 0.2)
+  anim['e'] = anim8.newAnimation(g('1-3',3, 2, 3), 0.2)
+  anim['n'] = anim8.newAnimation(g('1-3',4, 2, 4), 0.2)
 
   char.anim = anim
 
   return char
 end
 
-function Char.draw(self)
-  local x, y = self.offset.x, self.offset.y
-  local r = self.s:getRadius()
-  self.anim[self.state.actual]:draw(
-    self.spriteset,
-    x-12, y-22
-  )
-  love.graphics.circle('line', x, y, r)
-  
-  local vec = {
-    x = math.cos(self.angle),
-    y = math.sin(self.angle)
+function Char.setOffset(self, ox, oy)
+  local w, h = love.graphics.getDimensions()
+  self.offset = {
+    x = w/2,
+    y = h/2
   }
-
-  love.graphics.line(x, y, x, y-1*50)
 end
 
+function Char.draw(self)
+  local x, y = self.offset.x, self.offset.y
+  local w, h = 20, 28
+  self.anim[self.animstate]:draw(
+    self.spriteset,
+    x-w/2-3, y-h/2-3
+  )
+  
+  love.graphics.rectangle('line', x-w/2, y-h/2, w, h)
+end
+
+function Char.drawShots(self)
+  for _, shot in ipairs(self.Shots) do
+    local x, y = shot.b:getPosition()
+    love.graphics.setColor(255, 0, 0)
+    love.graphics.circle('fill', x-400, y-300, 5)
+    love.graphics.setColor(255, 255, 255)
+  end
+end
+ 
+local directionToAxis = {
+  ['n']  = -90,
+  ['e']  =   0,
+  ['s']  =  90,
+  ['w']  = 180,
+  ['ne'] = -45,
+  ['se'] =  45,
+  ['sw'] = 135,
+  ['nw'] = 225
+}
+
 function Char.update(self, dt)
-  self.anim[self.state.actual]:update(dt)
   self.b:setLinearVelocity(0,0)
+
   local vel = 150*dt
-  if love.keyboard.isDown('w') then
-    self:move(vel, -90)
-  end
-  if love.keyboard.isDown('a') then
-    self:move(-vel)
-  end
+
+  --get the direction like 'nw', 'se' or just 'n'
+  local direction = {}
+
+  if love.keyboard.isDown('w') then direction[1] = 'n' end
+  if love.keyboard.isDown('a') then direction[2] = 'w' end
+
+  --if the already on oposite direction then the result is nil
   if love.keyboard.isDown('s') then
-    self:move(-vel, -90)
+    if direction[1] then direction[1] = nil else direction[1] = 's' end
   end
   if love.keyboard.isDown('d') then
-    self:move(vel)
+    if direction[2] then direction[2] = nil else direction[2] = 'e' end
   end
+
+  --if walking in any direction
+  if direction[1] or direction[2] then
+    --update animation and resume if paused
+    self.anim[self.animstate]:update(dt)
+    self.anim[self.animstate]:resume()
+
+    --direction in string like 'nw' or 's'
+    local dirstr = ''..(direction[1] or '')..(direction[2] or '')
+
+    --update animation
+    if not (direction[1] and direction[2]) then
+      self.animstate = dirstr
+    end
+
+    --get angle by direction
+    local axis = directionToAxis[dirstr]
+    self:move(vel, axis)
+
+  else
+    --stop animation when stop walking
+    self.anim[self.animstate]:gotoFrame(2)
+    self.anim[self.animstate]:pause()
+
+  end
+
   if love.keyboard.isDown('q') then
     self:rotate(-2)
   end
@@ -87,10 +138,8 @@ function Char.rotate(self, angle)
 end
 
 function Char.move(self, vel, axis)
-  local angle = self.angle
-  if axis then 
-    angle = angle + math.rad(axis)
-  end
+  axis = axis or 0
+  local angle = self.angle + math.rad(axis)
   local vec = {
     x = math.cos(angle),
     y = math.sin(angle)
@@ -128,7 +177,6 @@ function Char.shot(self, cx, cy, world)
   shot.b = love.physics.newBody(world, px + x, py + y, "dynamic")
   shot.s = love.physics.newCircleShape(5)
   shot.f = love.physics.newFixture(shot.b, shot.s)
-  shot.f:setUserData('PlayerShot')
   shot.b:applyForce(vec.x*3000, vec.y*3000)
 
   table.insert(self.Shots, shot)
