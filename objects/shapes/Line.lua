@@ -33,4 +33,8 @@ function Line.draw(self, tx, ty)
   love.graphics.setColor(1,1,1)
 end
 
-return Line
+function Line.destroy(self)
+  self.f:release()
+end
+
+return setmetatable({}, {__call = function(_, ...) return Line:new(...) end})

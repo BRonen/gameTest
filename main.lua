@@ -1,16 +1,15 @@
-local Char = require('libs.Char')
+local Input = require('libs.Input')()
+local Event = require('libs.Event')()
 
+love.physics.setMeter(32)
 local World = love.physics.newWorld(0, 0)
 
-local Mapper = require('libs.Mapper')
-
-local Line = require('objects.shapes.Line')
-local Walls = {}
+local Mapper = require('libs.Mapper')()
+local Char = require('libs.Char')
 
 local DEBUG = true
 
-local p
-local mapper
+local Player
 
 function love.load(args)
   love.graphics.setDefaultFilter('nearest', 'nearest')
@@ -25,56 +24,127 @@ function love.load(args)
     print('==========\n')
   end
 
-  mapper = Mapper:new(World)
+  Mapper:load(World, 'teste.lua')
   
-  p = Char:new(World, 160, 360)
+  Player = Char(World, 160, 360, 'Player')
+  Event:subscribe('movePlayer', function(event)
+    Player:setDirection(event[2])
+  end)
+  Event:subscribe('rotatePlayer', function(event)
+    Player:rotate(event[2])
+  end)
+
+  Input:bind('w',      'up')
+  Input:bind('s',    'down')
+  Input:bind('d',   'right')
+  Input:bind('a',    'left')
+  Input:bind('q', 'rotate-')
+  Input:bind('e', 'rotate+')
+  Input:bind('h', 'nextMap')
+  
+  Input:bind('esc', function() love.event.push("quit") end)
 end
 
 function love.update(dt)
+  --something like a xor with oposite directions
+  local dy = Input:down('up')    ~= Input:down('down')
+  local dx = Input:down('right') ~= Input:down('left')
+  if dy and dx then
+    if Input:down('up')    then 
+      if Input:down('right') then Event:emit({'movePlayer', 'ne'}) end
+      if Input:down('left')  then Event:emit({'movePlayer', 'nw'}) end
+    end
+    if Input:down('down')  then 
+      if Input:down('right') then Event:emit({'movePlayer', 'se'}) end
+      if Input:down('left')  then Event:emit({'movePlayer', 'sw'}) end
+    end
+  elseif dy then
+    if Input:down('up')    then Event:emit({'movePlayer', 'n'}) end
+    if Input:down('down')  then Event:emit({'movePlayer', 's'}) end
+  elseif dx then
+    if Input:down('right') then Event:emit({'movePlayer', 'e'}) end
+    if Input:down('left')  then Event:emit({'movePlayer', 'w'}) end
+  end
+  if not love.keyboard.isDown('w') and
+    not love.keyboard.isDown('a') and
+    not love.keyboard.isDown('s') and
+    not love.keyboard.isDown('d') then
+      Event:emit({'movePlayer', ''})
+  end
+  if Input:pressed('nextMap') then Mapper:load(World, 'test.lua') end
+  if Input:released('nextMap') then Mapper:load(World, 'teste.lua') end
+
+  if Input:down('rotate-') then Event:emit({'rotatePlayer', -200*dt}) end
+  if Input:down('rotate+') then Event:emit({'rotatePlayer',  200*dt}) end
+
+  Input:update(dt)
+  Event:update(dt)
   World:update(dt)
-  mapper:update(dt)
-  p:update(dt)
+  Mapper:update(dt)
+  Player:update(dt)
 end
 
+local scale = 1.5
 function love.draw()
   love.graphics.push()
 
-  local x, y = p.b:getPosition()
+  local x, y = Player.b:getPosition()
 
 	local tx = math.floor(x - love.graphics.getWidth()  / 2 )
 	local ty = math.floor(y - love.graphics.getHeight() / 2 )
 
-  local w, h = love.graphics.getDimensions()
-  love.graphics.translate((p.offset.x), (p.offset.y))
+  local _, h = love.graphics.getDimensions()
+  love.graphics.translate((Player.offset.x), (Player.offset.y))
 
-	love.graphics.rotate(-(p.angle))
+	love.graphics.rotate(-(Player.angle))
+  love.graphics.scale(scale)
   
 	love.graphics.translate(-tx, -ty)
 
-  mapper:draw(-(p.offset.x), -(p.offset.y))
+  Mapper:draw(-(Player.offset.x), -(Player.offset.y))
 
-  p:drawShots()
+  Player:drawShots()
 
   love.graphics.pop()
 
-  p:draw()
+  love.graphics.scale(scale)
+
+  Player:draw(scale)
 
   love.graphics.print('FPS: ' .. love.timer.getFPS(),
-    32, h-30
+    32, 30
   )
   love.graphics.print(
     'Memory: ' .. math.floor(collectgarbage 'count') .. 'kb',
-    150, h-30
+    150, 30
   )
 end
 
-function love.mousepressed(cx, cy)
-  p:shot(cx, cy, World)
-end
-
 function love.resize(w, h)
-  p:setOffset(w/2, h/2)
+  Player:setOffset(w/2, h/2)
 end
 
 function love.keypressed(key)
+  Input:keypressed(key)
+end
+
+function love.keyreleased(key)
+  Input:keyreleased(key)
+end
+
+function love.mousepressed(x, y, button)
+  Input:mousepressed(x, y, button)
+  Player:shot(x, y, World)
+end
+
+function love.mousereleased(x, y, button)
+  Input:mousereleased(x, y, button)
+end
+
+function love.gamepadpressed(joystick, button)
+  Input:gamepadpressed(joystick, button)
+end
+
+function love.gamepadreleased(joystick, button)
+  Input:gamepadreleased(joystick, button)
 end

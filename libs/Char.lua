@@ -1,7 +1,7 @@
 local anim8 = require('libs.anim8')
 local Char = {}
 
-function Char:new(world, x, y)
+function Char:new(world, x, y, name)
   local char = {}
   
   setmetatable(char, self)
@@ -9,8 +9,9 @@ function Char:new(world, x, y)
 
   char.b = love.physics.newBody(world, x, y, 'dynamic')
   char.b:setMass(1)
-  char.s = love.physics.newRectangleShape(22,28)
+  char.s = love.physics.newRectangleShape(15,30)
   char.f = love.physics.newFixture(char.b, char.s)
+  char.f:setUserData(name)
 
   char.angle = 0
 
@@ -22,20 +23,25 @@ function Char:new(world, x, y)
 
   char.Shots = {}
 
-  char.animstate = 'n'
+  --the char walking and waiting
+  char.animstate = {'n', 'n'}
 
-  char.spriteset = love.graphics.newImage('assets/Player.png')
+  char.spriteset = love.graphics.newImage('assets/RunSheet.png')
   local g = anim8.newGrid(
-    25, 32,
+    32, 32,
     char.spriteset:getWidth(),
     char.spriteset:getHeight(),
     0, 1, 0
   )
   local anim = {}
-  anim['s'] = anim8.newAnimation(g('1-3',1, 2, 1), 0.2)
-  anim['w'] = anim8.newAnimation(g('1-3',2, 2, 2), 0.2)
-  anim['e'] = anim8.newAnimation(g('1-3',3, 2, 3), 0.2)
-  anim['n'] = anim8.newAnimation(g('1-3',4, 2, 4), 0.2)
+  anim['n']  = anim8.newAnimation(g('1-8',1, '7-2',1), 0.1)
+  anim['ne'] = anim8.newAnimation(g('1-8',2, '7-2',2), 0.1)
+  anim['e']  = anim8.newAnimation(g('1-8',3, '7-2',3), 0.1)
+  anim['se'] = anim8.newAnimation(g('1-8',4, '7-2',4), 0.1)
+  anim['s']  = anim8.newAnimation(g('1-8',5, '7-2',5), 0.1)
+  anim['sw'] = anim8.newAnimation(g('1-8',6, '7-2',6), 0.1)
+  anim['w']  = anim8.newAnimation(g('1-8',7, '7-2',7), 0.1)
+  anim['nw'] = anim8.newAnimation(g('1-8',8, '7-2',8), 0.1)
 
   char.anim = anim
 
@@ -45,17 +51,20 @@ end
 function Char.setOffset(self, ox, oy)
   local w, h = love.graphics.getDimensions()
   self.offset = {
-    x = w/2,
-    y = h/2
+    x = (w/2)+ox,
+    y = (h/2)+oy
   }
 end
 
-function Char.draw(self)
-  local x, y = self.offset.x, self.offset.y
+function Char.draw(self, scale)
+  scale = scale or 1
+  local x, y = self.offset.x/scale, self.offset.y/scale
   local w, h = 20, 28
-  self.anim[self.animstate]:draw(
+  local state = self.animstate[2]
+  if self.animstate[1] ~= '' then state = self.animstate[1] end
+  self.anim[state]:draw(
     self.spriteset,
-    x-w/2-3, y-h/2-3
+    x-w/2-5, y-h/2-5
   )
   
   love.graphics.rectangle('line', x-w/2, y-h/2, w, h)
@@ -86,51 +95,33 @@ function Char.update(self, dt)
 
   local vel = 150*dt
 
-  --get the direction like 'nw', 'se' or just 'n'
-  local direction = {}
-
-  if love.keyboard.isDown('w') then direction[1] = 'n' end
-  if love.keyboard.isDown('a') then direction[2] = 'w' end
-
-  --if the already on oposite direction then the result is nil
-  if love.keyboard.isDown('s') then
-    if direction[1] then direction[1] = nil else direction[1] = 's' end
-  end
-  if love.keyboard.isDown('d') then
-    if direction[2] then direction[2] = nil else direction[2] = 'e' end
-  end
-
   --if walking in any direction
-  if direction[1] or direction[2] then
+  if self.animstate[1] ~= '' then
     --update animation and resume if paused
-    self.anim[self.animstate]:update(dt)
-    self.anim[self.animstate]:resume()
+    self.anim[self.animstate[1]]:update(dt)
+    self.anim[self.animstate[1]]:resume()
 
-    --direction in string like 'nw' or 's'
-    local dirstr = ''..(direction[1] or '')..(direction[2] or '')
-
-    --update animation
-    if not (direction[1] and direction[2]) then
-      self.animstate = dirstr
-    end
-
-    --get angle by direction
-    local axis = directionToAxis[dirstr]
+    --get angle by direction and move
+    local axis = directionToAxis[self.animstate[1]]
     self:move(vel, axis)
-
   else
     --stop animation when stop walking
-    self.anim[self.animstate]:gotoFrame(2)
-    self.anim[self.animstate]:pause()
+    self.anim[self.animstate[2]]:gotoFrame(4)
+    self.anim[self.animstate[2]]:pause()
+  end
+end
 
+function Char.setDirection(self, dirstr)
+  --if player stopped and not already stopped then
+  if dirstr == '' and self.animstate[1] ~= '' then
+    --update the direction of player stopped
+    self.animstate[2] = self.animstate[1]
   end
+  self.animstate[1] = dirstr
+end
 
-  if love.keyboard.isDown('q') then
-    self:rotate(-2)
-  end
-  if love.keyboard.isDown('e') then
-    self:rotate(2)
-  end
+function Char.getDirection(self)
+  return self.animstate
 end
 
 function Char.rotate(self, angle)
@@ -182,4 +173,4 @@ function Char.shot(self, cx, cy, world)
   table.insert(self.Shots, shot)
 end
 
-return Char
+return setmetatable({}, {__call = function(_, ...) return Char:new(...) end})

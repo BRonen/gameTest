@@ -25,7 +25,7 @@ function eventHolder:update(dt)
   while event do
       local listeners = self.callbacks[event[1]]
       if listeners then
-        for i, callback in ipairs(listeners) do
+        for _, callback in ipairs(listeners) do
           callback(event)
         end
       end
@@ -33,8 +33,8 @@ function eventHolder:update(dt)
   end
 end
 
-function eventHolder:push(event)
+function eventHolder:emit(event)
   self.queue:rpush(event)
 end
 
-return eventHolder
+return setmetatable({}, {__call = function(_, ...) return eventHolder end})

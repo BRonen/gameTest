@@ -1,6 +1,6 @@
 local Rect = {}
 
-function Rect:new(world, x, y, w, h)
+function Rect:new(world, x, y, w, h, name, color)
   local rect = {}
 
   setmetatable(rect, self)
@@ -9,10 +9,11 @@ function Rect:new(world, x, y, w, h)
   rect.b = love.physics.newBody(world, x+w/2, y+h/2, 'static')
   rect.s = love.physics.newRectangleShape(w, h)
   rect.f = love.physics.newFixture(rect.b, rect.s)
+  rect.f:setUserData(name)
   rect.x, rect.y = x, y
   rect.w, rect.h = w, h
 
-  rect.color = {
+  rect.color = color or {
     math.random(1, 255)/255,
     math.random(1, 255)/255,
     math.random(1, 255)/255
@@ -32,4 +33,10 @@ function Rect.draw(self, tx, ty)
   love.graphics.setColor(1,1,1)
 end
 
-return Rect
+function Rect.destroy(self)
+  self.f:destroy()
+  self.b:destroy()
+  self.s:release()
+end
+
+return setmetatable({}, {__call = function(_, ...) return Rect:new(...) end})

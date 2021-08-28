@@ -1,7 +1,7 @@
 local world, path = ...
 
 local spawnPoints = {
-  ['teste.lua'] = {12*32, 4*32}
+  ['test.lua'] = {12*32, 4*32}
 }
 
 local bodies = world:getBodies( )
@@ -16,6 +16,7 @@ for _, body in ipairs(bodies) do
 end
   
 local objects = {}
+
 
 local Rect = require('objects.shapes.Rect')
 
@@ -67,18 +68,28 @@ local function StrToBuffer(string, dict)
 end
 
 local tilestring = [[
-######$$########
-#              #
-#              #
-#              #
-#              #
-#              #
-################
-#              #
-#              #
-#              #
-#              #
-######$$########
+###############$$#############
+#                            #
+#                            #
+#                            #
+#                            #
+#                            #
+############$$################
+#                            #
+#                            #
+#                            #
+#                            #
+###############$$#############
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
+                              
 ]]
 
 local buffer = StrToBuffer(
@@ -97,7 +108,6 @@ local quads = {
 }
 
 local callbacks = {}
-
 function callbacks.update(dt)
   return
 end
