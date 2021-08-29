@@ -1,17 +1,18 @@
+local Char = require('libs.Char')
+
 local Mapper = {}
 
 function Mapper:new()
-  local initialtime = love.timer.getTime( )
   local mapper = {}
 
   setmetatable(mapper, self)
   self.__index = self
 
-  print("Time loading map: " .. love.timer.getTime( ) - initialtime)
   return mapper
 end
 
 function Mapper.load(self, world, map)
+  local initialtime = love.timer.getTime( )
   if self.objects then
     for _, object in ipairs(self.objects) do
       object:destroy()
@@ -22,6 +23,9 @@ function Mapper.load(self, world, map)
   self.buffer, self.tileset = tmp[1], tmp[2]
   self.quads, self.objects  = tmp[3], tmp[4]
   self.callbacks = tmp[5] or {}
+  
+  print("Time loading Map: " .. love.timer.getTime( ) - initialtime)
+  return Char(world, 160, 360, 'Player')
 end
 
 function Mapper.draw(self, tx, ty)

@@ -1,17 +1,21 @@
-local Input = require('libs.Input')()
-local Event = require('libs.Event')()
-
-love.physics.setMeter(32)
-local World = love.physics.newWorld(0, 0)
+Input = require('libs.Input')()
+Event = require('libs.Event')()
+Timer = require('libs.Timer')()
 
 local Mapper = require('libs.Mapper')()
-local Char = require('libs.Char')
 
-local DEBUG = true
+DEBUG = false
+local scale = 2
 
+local World
 local Player
 
 function love.load(args)
+  love.physics.setMeter(32)
+  World = love.physics.newWorld(0, 0)
+
+  DEBUG = (args[1] == '--debug') or (args[1] == '-D')
+  
   love.graphics.setDefaultFilter('nearest', 'nearest')
   local w, h = love.graphics.getDimensions()
 
@@ -21,26 +25,54 @@ function love.load(args)
     print('RESOLUTION:       ', w, h)
     print('POWER INFO:       ', love.system.getPowerInfo())
     print('OS INFO:          ', love.system.getOS())
+    print('LUA VERSION:      ', _VERSION)
+    
+    local major, minor, revision, codename = love.getVersion()
+    local loveVersion = string.format("Version %d.%d.%d - %s", major, minor, revision, codename)
+    print('LOVE VERSION:     ', loveVersion)
     print('==========\n')
   end
 
-  Mapper:load(World, 'teste.lua')
-  
-  Player = Char(World, 160, 360, 'Player')
+  Player = Mapper:load(World, 'teste.lua')
   Event:subscribe('movePlayer', function(event)
     Player:setDirection(event[2])
   end)
   Event:subscribe('rotatePlayer', function(event)
     Player:rotate(event[2])
   end)
+  Event:subscribe('shotPlayer', function(event)
+    Player:shot(World)
+  end)
 
-  Input:bind('w',      'up')
-  Input:bind('s',    'down')
-  Input:bind('d',   'right')
-  Input:bind('a',    'left')
+  Input:bind('w',    'up')
+  Input:bind('s',  'down')
+  Input:bind('d', 'right')
+  Input:bind('a',  'left')
+
+  Input:bind(   'dpup',    'up')
+  Input:bind( 'dpdown',  'down')
+  Input:bind( 'dpleft',  'left')
+  Input:bind('dpright', 'right')
+  
+  Input:bind('l1', 'rotate-')
+  Input:bind('r1', 'rotate+')
+
   Input:bind('q', 'rotate-')
   Input:bind('e', 'rotate+')
+
+  Input:bind( 'fleft', 'shotPlayer')
+  Input:bind('mouse1', 'shotPlayer')
+
   Input:bind('h', 'nextMap')
+
+  Input:bind('tab', function()
+    DEBUG = not DEBUG
+    if DEBUG then
+      scale = 1
+    else
+      scale = 1.3
+    end
+  end)
   
   Input:bind('esc', function() love.event.push("quit") end)
 end
@@ -65,10 +97,10 @@ function love.update(dt)
     if Input:down('right') then Event:emit({'movePlayer', 'e'}) end
     if Input:down('left')  then Event:emit({'movePlayer', 'w'}) end
   end
-  if not love.keyboard.isDown('w') and
-    not love.keyboard.isDown('a') and
-    not love.keyboard.isDown('s') and
-    not love.keyboard.isDown('d') then
+  if not Input:down('up') and
+     not Input:down('down') and
+     not Input:down('left') and
+     not Input:down('right') then
       Event:emit({'movePlayer', ''})
   end
   if Input:pressed('nextMap') then Mapper:load(World, 'test.lua') end
@@ -77,14 +109,19 @@ function love.update(dt)
   if Input:down('rotate-') then Event:emit({'rotatePlayer', -200*dt}) end
   if Input:down('rotate+') then Event:emit({'rotatePlayer',  200*dt}) end
 
+  if Input:pressed('shotPlayer') then Event:emit({'shotPlayer'}) end
+
   Input:update(dt)
   Event:update(dt)
-  World:update(dt)
-  Mapper:update(dt)
+  Timer:update(dt)
+
   Player:update(dt)
+  
+  World:update(dt)
+
+  Mapper:update(dt)
 end
 
-local scale = 1.5
 function love.draw()
   love.graphics.push()
 
@@ -93,7 +130,6 @@ function love.draw()
 	local tx = math.floor(x - love.graphics.getWidth()  / 2 )
 	local ty = math.floor(y - love.graphics.getHeight() / 2 )
 
-  local _, h = love.graphics.getDimensions()
   love.graphics.translate((Player.offset.x), (Player.offset.y))
 
 	love.graphics.rotate(-(Player.angle))
@@ -103,7 +139,7 @@ function love.draw()
 
   Mapper:draw(-(Player.offset.x), -(Player.offset.y))
 
-  Player:drawShots()
+  Player:drawShots(scale)
 
   love.graphics.pop()
 
@@ -111,13 +147,15 @@ function love.draw()
 
   Player:draw(scale)
 
-  love.graphics.print('FPS: ' .. love.timer.getFPS(),
-    32, 30
-  )
-  love.graphics.print(
-    'Memory: ' .. math.floor(collectgarbage 'count') .. 'kb',
-    150, 30
-  )
+  if DEBUG then
+    love.graphics.print('FPS: ' .. love.timer.getFPS(),
+      32, 30
+    )
+    love.graphics.print(
+      'Memory: ' .. math.floor(collectgarbage 'count') .. 'kb',
+      150, 30
+    )
+  end
 end
 
 function love.resize(w, h)
@@ -134,7 +172,6 @@ end
 
 function love.mousepressed(x, y, button)
   Input:mousepressed(x, y, button)
-  Player:shot(x, y, World)
 end
 
 function love.mousereleased(x, y, button)

@@ -1,4 +1,6 @@
 local anim8 = require('libs.anim8')
+local Shot = require('objects.Shot')
+
 local Char = {}
 
 function Char:new(world, x, y, name)
@@ -9,9 +11,10 @@ function Char:new(world, x, y, name)
 
   char.b = love.physics.newBody(world, x, y, 'dynamic')
   char.b:setMass(1)
-  char.s = love.physics.newRectangleShape(15,30)
+  char.s = love.physics.newCircleShape(10)
   char.f = love.physics.newFixture(char.b, char.s)
   char.f:setUserData(name)
+  print(name .. ' is created now')
 
   char.angle = 0
 
@@ -34,14 +37,14 @@ function Char:new(world, x, y, name)
     0, 1, 0
   )
   local anim = {}
-  anim['n']  = anim8.newAnimation(g('1-8',1, '7-2',1), 0.1)
-  anim['ne'] = anim8.newAnimation(g('1-8',2, '7-2',2), 0.1)
-  anim['e']  = anim8.newAnimation(g('1-8',3, '7-2',3), 0.1)
-  anim['se'] = anim8.newAnimation(g('1-8',4, '7-2',4), 0.1)
-  anim['s']  = anim8.newAnimation(g('1-8',5, '7-2',5), 0.1)
-  anim['sw'] = anim8.newAnimation(g('1-8',6, '7-2',6), 0.1)
-  anim['w']  = anim8.newAnimation(g('1-8',7, '7-2',7), 0.1)
-  anim['nw'] = anim8.newAnimation(g('1-8',8, '7-2',8), 0.1)
+  anim['n']  = anim8.newAnimation(g('1-8',1), 0.07)
+  anim['ne'] = anim8.newAnimation(g('1-8',2), 0.07)
+  anim['e']  = anim8.newAnimation(g('1-8',3), 0.07)
+  anim['se'] = anim8.newAnimation(g('1-8',4), 0.07)
+  anim['s']  = anim8.newAnimation(g('1-8',5), 0.07)
+  anim['sw'] = anim8.newAnimation(g('1-8',6), 0.07)
+  anim['w']  = anim8.newAnimation(g('1-8',7), 0.07)
+  anim['nw'] = anim8.newAnimation(g('1-8',8), 0.07)
 
   char.anim = anim
 
@@ -59,23 +62,22 @@ end
 function Char.draw(self, scale)
   scale = scale or 1
   local x, y = self.offset.x/scale, self.offset.y/scale
-  local w, h = 20, 28
+  local r = self.s:getRadius()
   local state = self.animstate[2]
   if self.animstate[1] ~= '' then state = self.animstate[1] end
   self.anim[state]:draw(
     self.spriteset,
-    x-w/2-5, y-h/2-5
+    x-16, y-20
   )
   
-  love.graphics.rectangle('line', x-w/2, y-h/2, w, h)
+  if DEBUG then
+    love.graphics.circle("line", x, y, r)
+  end
 end
 
-function Char.drawShots(self)
+function Char.drawShots(self, scale)
   for _, shot in ipairs(self.Shots) do
-    local x, y = shot.b:getPosition()
-    love.graphics.setColor(255, 0, 0)
-    love.graphics.circle('fill', x-400, y-300, 5)
-    love.graphics.setColor(255, 255, 255)
+    shot:draw(-(self.offset.x), -(self.offset.y))
   end
 end
  
@@ -108,6 +110,9 @@ function Char.update(self, dt)
     --stop animation when stop walking
     self.anim[self.animstate[2]]:gotoFrame(4)
     self.anim[self.animstate[2]]:pause()
+  end
+  for _, shot in ipairs(self.Shots) do
+    shot:update(dt)
   end
 end
 
@@ -144,33 +149,39 @@ function Char.move(self, vel, axis)
   self.b:setLinearVelocity(vec.x*100, vec.y*100)
 end
 
-function Char.shot(self, cx, cy, world)
-  local px, py = self.b:getPosition()
-
-  --Translates real click position
-  cx = cx + math.floor(px - love.graphics.getWidth() / 2)
-  cy = cy + math.floor(py - love.graphics.getHeight() / 2)
-
-  --Rotate coords
-  local angle = math.atan2(cy-py, cx-px)
+function Char.shot(self, world)
+  local dir = self.animstate[1]
+  if dir == '' then dir = self.animstate[2] end
+  local angleCorretion = -math.rad(directionToAxis[dir])
 
   --vectors to mouse from player
   local vec = {
-    x = math.cos(angle + self.angle),
-    y = math.sin(angle + self.angle)
+    x = math.cos(self.angle-angleCorretion),
+    y = math.sin(self.angle-angleCorretion)
   }
 
   --fix collision of shot with player
   local x = vec.x < 0 and -5 or 5
   local y = vec.y < 0 and -5 or 5
 
-  local shot = {}
-  shot.b = love.physics.newBody(world, px + x, py + y, "dynamic")
-  shot.s = love.physics.newCircleShape(5)
-  shot.f = love.physics.newFixture(shot.b, shot.s)
-  shot.b:applyForce(vec.x*3000, vec.y*3000)
+  local px, py = self.b:getPosition()
+
+  local shot = Shot(world, px + x, py + y, 5, self.angle-angleCorretion+math.rad(90), 'shot.png')
+  shot.b:applyForce(vec.x*1000, vec.y*1000)
 
   table.insert(self.Shots, shot)
+  Timer:after(1, function()
+    local shots = {}
+    for _, oldShot in ipairs(self.Shots) do
+      if oldShot ~= shot then
+        table.insert(shots, oldShot)
+      end
+    end
+    self.Shots = shots
+    shot.f:destroy()
+    shot.b:destroy()
+    shot.s:release()
+  end)
 end
 
 return setmetatable({}, {__call = function(_, ...) return Char:new(...) end})
