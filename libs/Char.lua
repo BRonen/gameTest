@@ -14,7 +14,6 @@ function Char:new(world, x, y, name)
   char.s = love.physics.newCircleShape(10)
   char.f = love.physics.newFixture(char.b, char.s)
   char.f:setUserData(name)
-  print(name .. ' is created now')
 
   char.angle = 0
 
@@ -154,7 +153,7 @@ function Char.shot(self, world)
   if dir == '' then dir = self.animstate[2] end
   local angleCorretion = -math.rad(directionToAxis[dir])
 
-  --vectors to mouse from player
+  --vectors to target from player
   local vec = {
     x = math.cos(self.angle-angleCorretion),
     y = math.sin(self.angle-angleCorretion)
@@ -166,11 +165,18 @@ function Char.shot(self, world)
 
   local px, py = self.b:getPosition()
 
-  local shot = Shot(world, px + x, py + y, 5, self.angle-angleCorretion+math.rad(90), 'shot.png')
-  shot.b:applyForce(vec.x*1000, vec.y*1000)
+  local shot = Shot(
+    world, px + x, py + y,
+    self.angle-angleCorretion+math.pi,
+    'fireball.png', self.f:getUserData()
+  )
+  shot.b:applyForce(vec.x*500, vec.y*500)
 
   table.insert(self.Shots, shot)
   Timer:after(1, function()
+    shot:destroy()
+  end)
+  Timer:every(2, function()
     local shots = {}
     for _, oldShot in ipairs(self.Shots) do
       if oldShot ~= shot then
@@ -178,10 +184,8 @@ function Char.shot(self, world)
       end
     end
     self.Shots = shots
-    shot.f:destroy()
-    shot.b:destroy()
-    shot.s:release()
-  end)
+    end
+  )
 end
 
 return setmetatable({}, {__call = function(_, ...) return Char:new(...) end})

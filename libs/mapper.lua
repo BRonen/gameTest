@@ -7,6 +7,7 @@ function Mapper:new()
 
   setmetatable(mapper, self)
   self.__index = self
+  self.path = 'nil'
 
   return mapper
 end
@@ -18,14 +19,16 @@ function Mapper.load(self, world, map)
       object:destroy()
     end
   end
+  local oldpath = self.path
   local tmp = love.filesystem.load('maps/'..map)(world, self.path)
   self.path = map
   self.buffer, self.tileset = tmp[1], tmp[2]
   self.quads, self.objects  = tmp[3], tmp[4]
   self.callbacks = tmp[5] or {}
+  local spawn = tmp[6][oldpath]
   
   print("Time loading Map: " .. love.timer.getTime( ) - initialtime)
-  return Char(world, 160, 360, 'Player')
+  return Char(world, spawn[1], spawn[2], 'Player')
 end
 
 function Mapper.draw(self, tx, ty)

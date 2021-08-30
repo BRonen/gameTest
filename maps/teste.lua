@@ -1,7 +1,8 @@
 local world, path = ...
 
 local spawnPoints = {
-  ['test.lua'] = {12*32, 4*32}
+  ['test.lua'] = {10*32, 4*32},
+  ['nil']      = {10*32, 4*32}
 }
 
 local bodies = world:getBodies( )
@@ -24,7 +25,28 @@ local objCreators = {
   ['#'] = function(x, y)
     x = x-1
     y = y-1
-    return Rect(world,  x*32, y*32, 32, 32, 'Wall', {0.1, 0.1, 1, 0.3})
+
+    local wall = Rect(world,  x*32, y*32, 32, 32, 'Wall', {0.1, 0.1, 1, 0.3})
+
+    Event:subscribe(wall.f, function(event)
+      local a, b, userdatas, world = event[1], event[2], event[4], event[5]
+      if userdatas[1] == 'PlayerShot' or
+      userdatas[2] == 'PlayerShot' then
+        local nearby = world:queryBoundingBox(
+          (x*32)-32, (y*32)-32,
+          (x*32)+32, (y*32)+32,
+          function() return true end
+        ) or {}
+        for _, f in ipairs(nearby) do
+          if not f:isDestroyed() then
+            local b = f:getBody()
+            print('get ', b)
+          end
+        end
+      end
+    end)
+
+    return wall
   end
 }
 
@@ -112,4 +134,4 @@ function callbacks.update(dt)
   return
 end
 
-return {buffer, tileset, quads, objects, callbacks}
+return {buffer, tileset, quads, objects, callbacks, spawnPoints}

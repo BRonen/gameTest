@@ -5,7 +5,7 @@ Timer = require('libs.Timer')()
 local Mapper = require('libs.Mapper')()
 
 DEBUG = false
-local scale = 2
+local scale = 1
 
 local World
 local Player
@@ -13,6 +13,19 @@ local Player
 function love.load(args)
   love.physics.setMeter(32)
   World = love.physics.newWorld(0, 0)
+
+  local function beginContact(a, b, coll)
+    local userdatas = {
+      a:getUserData(),
+      b:getUserData()
+    }
+    print(userdatas[1] .. '     colliding with ' .. userdatas[2])
+    --BeginContact event emit
+    Event:emit({a, b, coll, userdatas, World})
+    Event:emit({b, a, coll, userdatas, World})
+  end
+
+  World:setCallbacks(beginContact)
 
   DEBUG = (args[1] == '--debug') or (args[1] == '-D')
   
@@ -139,7 +152,7 @@ function love.draw()
 
   Mapper:draw(-(Player.offset.x), -(Player.offset.y))
 
-  Player:drawShots(scale)
+  Player:drawShots(scale/2)
 
   love.graphics.pop()
 
